@@ -201,3 +201,13 @@ conservative ceiling of **$4.647176**, leaving **$0.352824** for smoke/UI checks
 or retained uncertain requests. This is conditional on every request passing
 the input gate, not a promise that all questions will fit. Every request still
 uses the same hard-cap ledger, including CLI/UI calls and explicit retries.
+
+The first capability smoke reached the Responses generation endpoint but
+returned HTTP 401 AuthenticationError for `gpt-6-luna`. Model listing and exact
+input counting had succeeded. Stop generation, embeddings and retries until
+that authentication blocker is resolved; do not change credentials or security
+settings. No usage was returned. Retain the **$0.000085125** reservation in the
+same ledger; confirmed settled spend is $0, and actual billing for the rejected
+request is unknown. No evaluation item has been generated. The installed
+OpenAI SDK minimum is now 2.54, which exposes the required counting endpoint;
+there is no additional third-party dependency.
