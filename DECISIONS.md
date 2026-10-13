@@ -162,3 +162,42 @@ remote CI results are recorded below; missing live model results remain unmeasur
   bytes. The existing byte-based token upper bound therefore puts their initial
   embeddings below **$0.021926** (rounded up), before any retries. No embeddings
   were purchased while the generation conflict remains unresolved.
+
+## Approved compatible comparison (2026-10-13)
+
+The user approved replacing the absolute strongest model with a stronger
+**temperature-0-compatible** comparison while preserving the total $5 cap.
+The selected available pair is `gpt-6-luna` and `gpt-6-sol`, both with explicit
+reasoning `none`, temperature 0, JSON-object output and 1,024 output tokens.
+Sol is the higher-capability sibling, not Astra or the newer incompatible 6.1.
+The prompt, questions and contract-scoped k=5 are unchanged.
+
+[Sol's official model page](https://developers.openai.com/api/docs/models/gpt-6-sol)
+verifies reasoning none and rates of $2 input, $0.20 cached input, $2.50 cache
+write and $10 output per million tokens. Luna rates are $0.10 / $0.01 / $0.125 /
+$0.50. The [model guide](https://developers.openai.com/api/docs/guides/latest-model)
+permits temperature with reasoning none. Verified configuration is recorded in
+`results/pricing-2026-10-13.json`; copy it to ignored `data/pricing.json` only
+while these rates remain current. Both true context limits remain 1,050,000.
+
+For the selected pair, use Responses JSON mode and its official
+[exact input-counting endpoint](https://developers.openai.com/api/docs/guides/token-counting).
+It counts message framing as well as content. Freeze the counted payload and
+send that same payload to generation; do not reuse Responses counts for Chat
+Completions or replace them with a character estimate. Reject missing, invalid
+or over-10,000 input counts before generation. The 10,000-token request limit
+is an enforced application limit, not a fictitious model context limit.
+Truncation is disabled. The old Chat Completions path keeps full-window
+reservations for other configurations.
+
+Reserve the highest applicable input rate including cache writes. Reconcile
+normal, cached and cache-written input separately from API usage. Missing cache
+usage retains the full reservation. The existing SQLite ledger is extended
+without resetting any request. Automatic retries stay disabled.
+
+With at most 10,000 exactly counted input tokens and 1,024 output tokens per
+request, 125 questions per model plus initial corpus/query embeddings have a
+conservative ceiling of **$4.647176**, leaving **$0.352824** for smoke/UI checks
+or retained uncertain requests. This is conditional on every request passing
+the input gate, not a promise that all questions will fit. Every request still
+uses the same hard-cap ledger, including CLI/UI calls and explicit retries.

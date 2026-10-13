@@ -162,3 +162,28 @@ def test_default_cap_is_five_and_preserves_existing_ledger(tmp_path):
     with pytest.raises(BudgetError, match=r"\$5 API cap"):
         reopened.reserve("test", 1)
     assert reopened.spent_usd == 5
+
+
+def test_cache_write_upper_bound_and_actual_cache_accounting(tmp_path):
+    pricing=make_pricing(tmp_path,input_per_million=2,output_per_million=10,
+                         cached_input_per_million=.2,cache_write_per_million=2.5)
+    budget=Budget(tmp_path,pricing=pricing)
+    response=NS(usage=NS(input_tokens=1000,output_tokens=100,
+                        input_tokens_details=NS(cached_tokens=600,cache_write_tokens=300)))
+    assert budget.run('test',1000,100,lambda:response) is response
+    assert pricing.nanodollars('test',1000,100,reserve=True)==3_500_000
+    assert budget.spent_usd==pytest.approx(.00207)
+    with sqlite3.connect(budget.path) as db:
+        assert db.execute('SELECT cached_tokens,cache_write_tokens FROM cache_usage').fetchone()==(600,300)
+
+
+@pytest.mark.parametrize('details',[None,NS(cached_tokens=-1,cache_write_tokens=0),
+    NS(cached_tokens=500,cache_write_tokens=501),NS(cached_tokens=True,cache_write_tokens=0)])
+def test_invalid_cache_usage_keeps_reservation(tmp_path,details):
+    pricing=make_pricing(tmp_path,input_per_million=2,output_per_million=10,
+                         cached_input_per_million=.2,cache_write_per_million=2.5)
+    budget=Budget(tmp_path,pricing=pricing)
+    with pytest.raises(BudgetError,match='cache usage'):
+        budget.run('test',1000,100,lambda:NS(usage=NS(input_tokens=1000,output_tokens=10,
+                                                   input_tokens_details=details)))
+    assert budget.spent_usd==pytest.approx(.0035)

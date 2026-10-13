@@ -60,7 +60,9 @@ class Pricing:
             for model, rates in self.data["models"].items():
                 if not isinstance(model, str) or not model:
                     raise ValueError("Invalid model ID")
-                for field in ("input_per_million", "output_per_million"):
+                for field in ("input_per_million", "output_per_million",
+                              *[key for key in ("cached_input_per_million", "cache_write_per_million")
+                                if key in rates]):
                     value = Decimal(str(rates[field]))
                     if not value.is_finite() or value < 0:
                         raise ValueError("Rates must be finite and nonnegative")
@@ -85,15 +87,23 @@ class Pricing:
         self.model(name)
         return name
 
-    def nanodollars(self, model: str, input_tokens: int, output_tokens: int = 0) -> int:
+    def nanodollars(self, model: str, input_tokens: int, output_tokens: int = 0, *,
+                    cached_tokens: int = 0, cache_write_tokens: int = 0,
+                    reserve: bool = False) -> int:
         rates = self.model(model)
-        for tokens in (input_tokens, output_tokens):
+        for tokens in (input_tokens, output_tokens, cached_tokens, cache_write_tokens):
             if type(tokens) is not int or tokens < 0:
                 raise ValueError("Token counts must be nonnegative integers")
-        usd = (
-            Decimal(input_tokens) * Decimal(str(rates["input_per_million"]))
-            + Decimal(output_tokens) * Decimal(str(rates["output_per_million"]))
-        ) / 1_000_000
+        if cached_tokens + cache_write_tokens > input_tokens:
+            raise ValueError("Cache token counts exceed total input")
+        normal = Decimal(str(rates["input_per_million"]))
+        cached = Decimal(str(rates.get("cached_input_per_million", normal)))
+        written = Decimal(str(rates.get("cache_write_per_million", normal)))
+        input_cost = (input_tokens * max(normal, cached, written) if reserve else
+                      (input_tokens - cached_tokens - cache_write_tokens) * normal
+                      + cached_tokens * cached + cache_write_tokens * written)
+        usd = (input_cost + Decimal(output_tokens) *
+               Decimal(str(rates["output_per_million"]))) / 1_000_000
         return int((usd * NANODOLLARS).to_integral_value(rounding=ROUND_CEILING))
 
 
@@ -121,6 +131,10 @@ class Budget:
                 id TEXT PRIMARY KEY, model TEXT NOT NULL, cost INTEGER NOT NULL,
                 status TEXT NOT NULL, input_tokens INTEGER, output_tokens INTEGER
             )""")
+            db.execute("""CREATE TABLE IF NOT EXISTS cache_usage (
+                request_id TEXT PRIMARY KEY, cached_tokens INTEGER NOT NULL,
+                cache_write_tokens INTEGER NOT NULL
+            )""")
 
     def _connect(self):
         return sqlite3.connect(self.path, timeout=30)
@@ -138,7 +152,7 @@ class Budget:
         return amount / float(NANODOLLARS)
 
     def reserve(self, model: str, input_tokens: int, output_tokens: int = 0) -> str:
-        cost = self.pricing.nanodollars(model, input_tokens, output_tokens)
+        cost = self.pricing.nanodollars(model, input_tokens, output_tokens, reserve=True)
         request_id = uuid4().hex
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -154,14 +168,19 @@ class Budget:
                        (request_id, model, cost))
         return request_id
 
-    def settle(self, request_id: str, input_tokens: int, output_tokens: int = 0):
+    def settle(self, request_id: str, input_tokens: int, output_tokens: int = 0, *,
+               cached_tokens: int = 0, cache_write_tokens: int = 0):
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT model, cost, status FROM requests WHERE id = ?",
                              (request_id,)).fetchone()
             if row is None or row[2] != "reserved":
                 raise BudgetError("Reservation is missing or already settled")
-            cost = self.pricing.nanodollars(row[0], input_tokens, output_tokens)
+            cost = self.pricing.nanodollars(row[0], input_tokens, output_tokens,
+                                            cached_tokens=cached_tokens,
+                                            cache_write_tokens=cache_write_tokens)
+            db.execute("INSERT INTO cache_usage VALUES (?, ?, ?)",
+                       (request_id, cached_tokens, cache_write_tokens))
             if cost > row[1]:
                 # Retain the actual charge even if configuration was incorrect.
                 db.execute("UPDATE requests SET cost = ?, status = 'underreserved', "
@@ -184,7 +203,17 @@ class Budget:
                                 getattr(usage, "output_tokens", 0 if output_upper == 0 else None))
         if type(input_tokens) is not int or type(output_tokens) is not int:
             raise BudgetError("API did not report usage; full request reservation is retained.")
-        self.settle(request_id, input_tokens, output_tokens)
+        rates = self.pricing.model(model)
+        cached = written = 0
+        if "cached_input_per_million" in rates or "cache_write_per_million" in rates:
+            details = getattr(usage, "input_tokens_details", None)
+            cached = getattr(details, "cached_tokens", None)
+            written = getattr(details, "cache_write_tokens", None)
+            if (type(cached) is not int or type(written) is not int or
+                    min(cached, written) < 0 or cached + written > input_tokens):
+                raise BudgetError("API cache usage is invalid; full reservation is retained.")
+        self.settle(request_id, input_tokens, output_tokens,
+                    cached_tokens=cached, cache_write_tokens=written)
         return response
 
 
