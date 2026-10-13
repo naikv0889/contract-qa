@@ -85,16 +85,39 @@ pipeline. API calls and browser-rendering verification remain separate gates.
 
 The repository is public at
 [naikv0889/contract-qa](https://github.com/naikv0889/contract-qa).
-Phases 1–4 each passed their GitHub Actions CI checks and were squash merged:
+Phases 1–5 each passed their GitHub Actions CI checks and were squash merged:
 
 - [Phase 1: ingestion](https://github.com/naikv0889/contract-qa/pull/1)
 - [Phase 2: retrieval](https://github.com/naikv0889/contract-qa/pull/2)
 - [Phase 3: verified answers](https://github.com/naikv0889/contract-qa/pull/3)
 - [Phase 4: evaluation](https://github.com/naikv0889/contract-qa/pull/4)
+- [Phase 5: UI and documentation](https://github.com/naikv0889/contract-qa/pull/5)
 
-The verified main commit after phase 4 is
-`b72a363ee4500ea5f6cf84c33d2dd9973e61f287`.
-Phase 5 is pending at this checkpoint; its current status is available in
-[the repository's pull requests](https://github.com/naikv0889/contract-qa/pulls).
+The verified main commit after phase 5 is
+`f3155cb5207ba95ebb1861aa6c03c70887c94a92`.
+The [phase 5 CI run](https://github.com/naikv0889/contract-qa/actions/runs/38447578139)
+reported **204 passed, 1 xfailed in 11.27s** on Python 3.11 before merge.
 These are real remote CI results, separate from the local fresh-clone checks
 above. Live API measurements and rendered-browser QA remain unverified.
+The [post-merge main-branch CI run](https://github.com/naikv0889/contract-qa/actions/runs/38447715526)
+also passed for that exact phase-5 merge commit.
+
+## Public GitHub fresh-clone reproduction
+
+After the five phase merges, a new clone was fetched directly from
+`https://github.com/naikv0889/contract-qa.git`, with HEAD verified as
+`f3155cb5207ba95ebb1861aa6c03c70887c94a92`.
+A newly created virtual environment installed `requirements.txt` from scratch.
+The README's offline pipeline completed successfully:
+
+- Full tests: **204 passed, 1 xfailed in 15.58s** on Python 3.12
+- Ingestion: **1,216 chunks from 25 contracts**
+- Official source downloaded afresh; archive checksum matched the reference
+- ZIP-backed evaluation rebuild: **125 items (65 answerable, 60 absent-clause)**
+- Ingestion statistics and labeled offline quote demonstration reproduced
+- `git diff --exit-code -- data` passed, confirming byte-identical generated data
+- Python byte compilation passed and the fresh-clone worktree remained clean
+
+No API key or paid request was used. This verifies public source distribution
+and the offline pipeline; it does not turn unmeasured model quality or blocked
+browser-rendering checks into completed tests.

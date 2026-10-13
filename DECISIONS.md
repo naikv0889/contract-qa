@@ -14,15 +14,15 @@
   two-model benchmark has run. API spend during construction is $0. Model
   choices remain pending a real key, an available-model listing, official
   pricing verification, and a capability check for the required chat options.
-- GitHub publication is now underway in the public
+- GitHub publication is complete in the public
   [naikv0889/contract-qa repository](https://github.com/naikv0889/contract-qa).
-  Phases 1–4 each passed remote CI and were squash merged through PRs
+  Phases 1–5 each passed remote CI and were squash merged through PRs
   [#1](https://github.com/naikv0889/contract-qa/pull/1),
   [#2](https://github.com/naikv0889/contract-qa/pull/2),
   [#3](https://github.com/naikv0889/contract-qa/pull/3), and
-  [#4](https://github.com/naikv0889/contract-qa/pull/4).
-  Phase 5 remains pending at this documentation checkpoint; track it in
-  [pull requests](https://github.com/naikv0889/contract-qa/pulls).
+  [#4](https://github.com/naikv0889/contract-qa/pull/4), and
+  [#5](https://github.com/naikv0889/contract-qa/pull/5).
+  A documentation-only follow-up records final validation evidence.
   Public commits use clean source snapshots without private project background.
 - No unsupported resume metrics are filled in. The original historical claims
   of a 1,640-to-555-character median reduction are not reproduced before/after
@@ -56,7 +56,7 @@
 
 The local deterministic pipeline, source counts, chunk statistics, test
 summary, and fresh-clone checks are recorded in `VALIDATION.md`. Live API
-results and the remaining publication checks are separate gates. Verified
+results and publication checks are separate gates. Verified
 remote CI results are recorded below; missing live model results remain unmeasured.
 
 ## Generation API shape
