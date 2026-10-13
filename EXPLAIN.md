@@ -91,10 +91,19 @@ a refused answer.
 13. **How is the budget protected?** Persistent reservations precede API calls,
     observed usage reconciles them, caching avoids repeat embeddings, and
     automatic SDK retries are disabled.
-14. **What do the results show?** Consult the actual results table. Until a key
-    is available, model quality is unmeasured; passing deterministic tests is
+14. **What do the results show?** Consult the actual results table. The key now
+    authenticates, but the strongest model conflicts with temperature 0.
+    Model quality is unmeasured; passing deterministic tests is
     evidence about code behavior, not evidence of model accuracy.
 15. **What would you improve next?** Evaluate a larger held-out set, inspect
     retrieval failures and section boundaries, handle cross-clause context,
     and add entailment review with lawyers. Preserve the original baseline
     before trying reranking or different chunking.
+
+
+The current model decision is an example of enforcing requirements before
+spending: authenticated access is available, but Astra requires reasoning and
+cannot accept temperature 0. Its conservative full-window reservation also
+exceeds $5. Browser rendering now passes on desktop and mobile with explicitly
+labeled fixtures; live answer quality and end-to-end paid behavior are still
+unmeasured. See DECISIONS.md and VALIDATION.md for evidence and next options.

@@ -10,10 +10,9 @@
 - The requested saved cloud environment was not available. Work proceeded in
   the available cloud workspace after that limitation and workaround were
   discussed. The user's computer was not accessed.
-- `OPENAI_API_KEY` is absent. No model listing, paid embedding, live answer, or
-  two-model benchmark has run. API spend during construction is $0. Model
-  choices remain pending a real key, an available-model listing, official
-  pricing verification, and a capability check for the required chat options.
+- The initial workspace lacked an API key. In the published environment on
+  2026-10-13, authenticated model listing succeeded. No paid requests have
+  occurred. The current model/capability conflict is recorded below.
 - GitHub publication is complete in the public
   [naikv0889/contract-qa repository](https://github.com/naikv0889/contract-qa).
   Phases 1–5 each passed remote CI and were squash merged through PRs
@@ -108,3 +107,58 @@ remote CI results are recorded below; missing live model results remain unmeasur
   headless browser launch failed on a restricted local socket; a supported
   cloud-browser attempt could not reach the isolated localhost server. This
   limitation is reported, not hidden behind simulated screenshots.
+
+
+## Published-environment model decision (2026-10-13)
+
+- The user revised the total project cap to **$5**, superseding the initial
+  budget. Code, tests and instructions enforce this before any paid calls.
+  All executions use the same persistent ledger; never reset or copy it to
+  create a new allowance. No embedding cache exists yet because no paid call ran.
+- Safe authenticated model listing succeeded through the environment's normal
+  API connection. Both `gpt-6-luna` and `gpt-6-astra` are visible to the key.
+  Listing proves authentication/model visibility, not generation billing access.
+- Interpret “current” as the current generation: **gpt-6-luna** is the cheapest
+  current candidate and **gpt-6-astra** the strongest. The cheaper legacy
+  `gpt-5-nano` ($0.05/$0.40 per million input/output tokens) is explicitly
+  deprecated in its [official model page](https://developers.openai.com/api/docs/models/gpt-5-nano).
+  [GPT-4.1 nano](https://developers.openai.com/api/docs/models/gpt-4.1-nano)
+  ($0.10/$0.40) is also marked deprecated, so it was not silently substituted.
+- [Official current pricing](https://developers.openai.com/api/docs/pricing):
+  Luna standard input/output is $0.10/$0.50 per million tokens, rising to
+  $0.20/$0.75 above 272K input tokens. Astra is $10/$50, rising to $20/$75.
+  Cache writes have separate higher rates; no cache discount is assumed.
+- [Luna documentation](https://developers.openai.com/api/docs/models/gpt-6-luna)
+  gives a 1,050,000-token context window and supports reasoning `none`.
+  [Astra documentation](https://developers.openai.com/api/docs/models/gpt-6-astra)
+  gives the same context window and requires reasoning. Both document Chat
+  Completions and structured output support. JSON-mode generation remains
+  untested; the [JSON-mode guide](https://developers.openai.com/api/docs/guides/structured-outputs#json-mode)
+  includes an Astra Chat Completions JSON-object example. These are candidates,
+  not a runnable verified configuration.
+- The [current model guide](https://developers.openai.com/api/docs/guides/latest-model)
+  says temperature is unsupported when reasoning is not `none`; Astra does not
+  support `none`. Therefore strongest-model selection and temperature 0 cannot
+  both be satisfied. Luna would need explicit `reasoning_effort="none"`, which
+  the current client does not send. No parameter was silently dropped.
+- Even ignoring that conflict, the existing full-window reservation for Astra
+  is at least 1,050,000 × $20 / 1M + 1,024 × $75 / 1M = **$21.0768 per request**,
+  already above the total $5 cap. This is a conservative reservation, not an
+  estimate of actual short-prompt spend. Cache-write charges, if applicable,
+  can increase this further. The corresponding Luna input/output bound is
+  $0.210768 per request; 125 worst-case reservations total $26.346 before
+  embeddings. Actual usage reconciliation can reduce reservations, but does
+  not make an unaffordable Astra request executable.
+- Paid evaluation is paused, with **$0 actual spend, $0 reserved**. Options for
+  a future scope decision: choose two temperature-compatible models within the
+  cap, or explicitly relax temperature and design a proven tighter request
+  bound before re-estimating. Neither changes the authorized $5 cap. A larger
+  cap alone cannot resolve Astra's temperature conflict. Do not tune questions,
+  prompts or k against results when work resumes.
+
+- [text-embedding-3-small pricing](https://developers.openai.com/api/docs/models/text-embedding-3-small)
+  remains $0.02 per million input tokens. Unique corpus strings contain
+  1,096,009 UTF-8 bytes and the five unique evaluation questions contain 265
+  bytes. The existing byte-based token upper bound therefore puts their initial
+  embeddings below **$0.021926** (rounded up), before any retries. No embeddings
+  were purchased while the generation conflict remains unresolved.

@@ -19,8 +19,10 @@
 ## Add only after live evaluation
 
 The requested model-comparison bullet is not supported yet. Both models are
-unselected and all quality metrics are unmeasured because the environment has
-no API key. Once two complete runs are available, use their actual model IDs,
+identified as candidates (`gpt-6-luna` and `gpt-6-astra`), but quality metrics
+remain unmeasured: Astra cannot satisfy the required temperature 0, and its
+full-window reservation exceeds the $5 cap. The key now authenticates.
+Once two complete runs are available, use their actual model IDs,
 Recall@5, grounded answer rates, and refusal accuracy from
 `results/summary.md`. Do not replace N/A with zero or use a fabricated score.
 The historical 1,640-character baseline is unverified and must not be claimed.

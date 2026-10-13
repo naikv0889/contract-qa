@@ -1,0 +1,24 @@
+{
+  "verified_at": "2026-10-13",
+  "authenticated_models_listing": "succeeded",
+  "key_visible_candidates": {"cheap_current": "gpt-6-luna", "strongest_current": "gpt-6-astra"},
+  "selection_status": "blocked; no runnable pricing configuration created",
+  "cap_usd": 5,
+  "actual_spend_usd": 0,
+  "reserved_usd": 0,
+  "paid_requests": 0,
+  "evaluated_items": 0,
+  "blockers": [
+    "gpt-6-astra does not support reasoning none, so required temperature 0 is unsupported",
+    "gpt-6-astra full-window reservation at long-context standard input/output rates is at least $21.0768, exceeding the total $5 cap",
+    "gpt-6-luna requires explicit reasoning_effort none for temperature 0; current client does not send this option"
+  ],
+  "billing_access": "not tested by free models listing",
+  "sources": [
+    "https://developers.openai.com/api/docs/pricing",
+    "https://developers.openai.com/api/docs/models/gpt-6-luna",
+    "https://developers.openai.com/api/docs/models/gpt-6-astra",
+    "https://developers.openai.com/api/docs/guides/latest-model",
+    "https://developers.openai.com/api/docs/models/gpt-5-nano"
+  ]
+}

@@ -121,3 +121,53 @@ The README's offline pipeline completed successfully:
 No API key or paid request was used. This verifies public source distribution
 and the offline pipeline; it does not turn unmeasured model quality or blocked
 browser-rendering checks into completed tests.
+
+
+## Published environment follow-up (2026-10-13)
+
+This dated checkpoint supersedes the earlier missing-key and browser-launch
+limitations. The key is present and authenticated model listing succeeded.
+No paid API calls, embeddings, generated answers or evaluations ran; actual
+spend and ledger reservations remain $0. Billing access is untested. The
+current blocker is the model/temperature and reservation conflict documented
+in DECISIONS.md, not missing credentials.
+
+- Full local suite after lowering the cap: **206 passed, 1 xfailed in 10.29s**.
+- The persistent ledger is `/workspace/contract-qa/data/budget.sqlite3`;
+  `CONTRACT_QA_BUDGET_PATH` points every execution and clone there.
+- Actual budget CLI: `Spent or conservatively reserved: $0.000000 / $5`.
+- Actual answer CLI exits 2: `Verified pricing is required at data/pricing.json; see README.md for its schema.`
+- Headless Chromium rendered the real localhost application at desktop
+  1440×1000 and mobile 390×844. Real server checks passed: 25 contracts,
+  longest contract selection, starter question, Ctrl+Enter, and configuration
+  error display. No horizontal overflow or JavaScript errors occurred.
+- Explicit browser response fixtures separately passed loading, disabled
+  duplicate submission, expandable public-source quotations, refusal, 503
+  errors, repeat submission and keyboard focus. These are rendering checks,
+  **not live model or retrieval verification**. Fixture screenshots visibly
+  label their answer as fixture-only. No real generated answer is claimed.
+- Evidence: [browser checks](results/browser/checks.json),
+  [desktop configuration error](results/browser/desktop-actual-config-error.png),
+  [mobile configuration error](results/browser/mobile-actual-config-error.png),
+  [desktop fixture quotes](results/browser/desktop-fixture-quotes.png),
+  [mobile fixture quotes](results/browser/mobile-fixture-quotes.png).
+
+Live answer/refusal UI integration remains unverified until the paid-model
+constraint conflict is resolved. The overall project is not complete.
+
+The cap change was published through draft [PR #7](https://github.com/naikv0889/contract-qa/pull/7), then squash merged after
+[CI run 38451067354](https://github.com/naikv0889/contract-qa/actions/runs/38451067354)
+succeeded for exact head `5f16a5caa8041565c5e13afb77e17354fdf71d0b`.
+Merge commit: `5e69877594f2d49c548a735a31e864d313837d38`.
+
+### Fresh public clone after the cap change
+
+A new public clone at `5e69877594f2d49c548a735a31e864d313837d38` installed
+requirements into a new Python 3.12 virtual environment. The complete README
+offline pipeline passed: **206 passed, 1 xfailed in 10.27s**, 1,216 chunks,
+a fresh official CUAD download with matching archive checksum, 125 evaluation
+items (65 answerable / 60 absent), the ingestion audit, and the offline quote
+demo. `git diff --exit-code -- data` proved byte-identical regeneration;
+compilation passed and the clone stayed clean. Its budget command used the
+same absolute ledger and reported **$0.000000 / $5**. No embedding cache was
+created or copied and no paid API request was made.

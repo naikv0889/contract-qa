@@ -1,0 +1,46 @@
+[
+  {
+    "viewport": "desktop",
+    "actual_server": [
+      "25 contracts",
+      "long contract selection",
+      "starter question",
+      "Ctrl+Enter",
+      "configuration error",
+      "no horizontal overflow"
+    ],
+    "javascript_errors": [],
+    "mocked_rendering": [
+      "loading",
+      "disabled duplicate submission",
+      "expandable real-source quote with fixture answer",
+      "refusal",
+      "503 error",
+      "repeat submission",
+      "keyboard focus",
+      "no horizontal overflow"
+    ]
+  },
+  {
+    "viewport": "mobile",
+    "actual_server": [
+      "25 contracts",
+      "long contract selection",
+      "starter question",
+      "Ctrl+Enter",
+      "configuration error",
+      "no horizontal overflow"
+    ],
+    "javascript_errors": [],
+    "mocked_rendering": [
+      "loading",
+      "disabled duplicate submission",
+      "expandable real-source quote with fixture answer",
+      "refusal",
+      "503 error",
+      "repeat submission",
+      "keyboard focus",
+      "no horizontal overflow"
+    ]
+  }
+]
