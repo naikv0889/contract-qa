@@ -1,0 +1,124 @@
+{
+  "contracts": 25,
+  "methodology": "Same selected contracts, normalization, and chunking. The paragraph-only ablation temporarily replaces find_headings with trusted paragraph-start candidates; source files and production chunks are unchanged. This is a newly measured ablation, not a historical benchmark.",
+  "production": {
+    "chunks": 1216,
+    "median_chars": 555.0,
+    "max_chars": 3993,
+    "total_chunk_chars": 1095648
+  },
+  "paragraph_only_ablation": {
+    "chunks": 763,
+    "median_chars": 854,
+    "max_chars": 3993,
+    "total_chunk_chars": 1096060
+  },
+  "heading_counts": {
+    "ABILITYINC_06_15_2020_EX_4_25_SERVICES_AGREEMENT": {
+      "paragraph_start": 4,
+      "sequence_aware": 38
+    },
+    "ACCELERATEDTECHNOLOGIESHOLDINGCORP_04_24_2003_EX_10_13_JOINT_VENTURE_AGREEMENT": {
+      "paragraph_start": 16,
+      "sequence_aware": 16
+    },
+    "ACCURAYINC_09_01_2010_EX_10_31_DISTRIBUTOR_AGREEMENT": {
+      "paragraph_start": 8,
+      "sequence_aware": 119
+    },
+    "ADAMSGOLFINC_03_21_2005_EX_10_17_ENDORSEMENT_AGREEMENT": {
+      "paragraph_start": 36,
+      "sequence_aware": 42
+    },
+    "ADAPTIMMUNETHERAPEUTICSPLC_04_06_2017_EX_10_11_STRATEGIC_ALLIANCE_AGREEMENT": {
+      "paragraph_start": 6,
+      "sequence_aware": 92
+    },
+    "ADIANUTRITION_INC_04_01_2005_EX_10_D2_RESELLER_AGREEMENT": {
+      "paragraph_start": 40,
+      "sequence_aware": 41
+    },
+    "ADUROBIOTECH_INC_06_02_2020_EX_10_7_CONSULTING_AGREEMENT": {
+      "paragraph_start": 10,
+      "sequence_aware": 10
+    },
+    "ALCOSTORESINC_12_14_2005_EX_10_26_AGENCY_AGREEMENT": {
+      "paragraph_start": 17,
+      "sequence_aware": 17
+    },
+    "ALLISONTRANSMISSIONHOLDINGSINC_12_15_2014_EX_99_1_COOPERATION_AGREEMENT": {
+      "paragraph_start": 16,
+      "sequence_aware": 16
+    },
+    "ANIXABIOSCIENCESINC_06_09_2020_EX_10_1_COLLABORATION_AGREEMENT": {
+      "paragraph_start": 66,
+      "sequence_aware": 66
+    },
+    "ARMSTRONGFLOORING_INC_01_07_2019_EX_10_2_INTELLECTUAL_PROPERTY_AGREEMENT": {
+      "paragraph_start": 35,
+      "sequence_aware": 79
+    },
+    "ASPIRITYHOLDINGSLLC_05_07_2012_EX_10_6_OUTSOURCING_AGREEMENT": {
+      "paragraph_start": 11,
+      "sequence_aware": 92
+    },
+    "AgapeAtpCorp_20191202_10_KA_EX_10_1_11911128_EX_10_1_Supply_Agreement": {
+      "paragraph_start": 7,
+      "sequence_aware": 55
+    },
+    "AlliedEsportsEntertainmentInc_20190815_8_K_EX_10_19_11788293_EX_10_19_Content_License_Agre": {
+      "paragraph_start": 2,
+      "sequence_aware": 11
+    },
+    "AlliedEsportsEntertainmentInc_20190815_8_K_EX_10_34_11788308_EX_10_34_Sponsorship_Agreemen": {
+      "paragraph_start": 8,
+      "sequence_aware": 85
+    },
+    "Antares_Pharma_Inc_Manufacturing_Agreement": {
+      "paragraph_start": 80,
+      "sequence_aware": 80
+    },
+    "ArconicRolledProductsCorp_20191217_10_12B_EX_2_7_11923804_EX_2_7_Trademark_License_Agreeme": {
+      "paragraph_start": 5,
+      "sequence_aware": 30
+    },
+    "BEYONDCOMCORP_08_03_2000_EX_10_2_CO_HOSTING_AGREEMENT": {
+      "paragraph_start": 32,
+      "sequence_aware": 32
+    },
+    "BICYCLETHERAPEUTICSPLC_03_10_2020_EX_10_11_SERVICE_AGREEMENT": {
+      "paragraph_start": 83,
+      "sequence_aware": 83
+    },
+    "BloomEnergyCorp_20180321_DRSA_on_S_1_EX_10_11240356_EX_10_Maintenance_Agreement": {
+      "paragraph_start": 83,
+      "sequence_aware": 130
+    },
+    "CYBERIANOUTPOSTINC_07_09_1998_EX_10_13_PROMOTION_AGREEMENT": {
+      "paragraph_start": 47,
+      "sequence_aware": 50
+    },
+    "CnsPharmaceuticalsInc_20200326_8_K_EX_10_1_12079626_EX_10_1_Development_Agreement": {
+      "paragraph_start": 4,
+      "sequence_aware": 42
+    },
+    "CreditcardscomInc_20070810_S_1_EX_10_33_362297_EX_10_33_Affiliate_Agreement": {
+      "paragraph_start": 3,
+      "sequence_aware": 21
+    },
+    "ENERGYXXILTD_05_08_2015_EX_10_13_Transportation_AGREEMENT": {
+      "paragraph_start": 12,
+      "sequence_aware": 86
+    },
+    "EbixInc_20010515_10_Q_EX_10_3_4049767_EX_10_3_Co_Branding_Agreement": {
+      "paragraph_start": 50,
+      "sequence_aware": 51
+    }
+  },
+  "original_script_sha256": {
+    "contract_qa/ingest.py": "3e43087cbf02dc77dc8e6a9dda43efa51cc5a373a404faacc13bef635af35e3e",
+    "scripts/download_cuad.py": "efb01e29be2e5e2aa087ad400ea856515b1e73fc9313d2308ae85dae6c21f786"
+  },
+  "source_archive_sha256": "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a",
+  "source_json_sha256": "ed0b77d85bdf4014d7495800e8e4a70565b48ee6f8a2e5dca9cf8655dbf10eae"
+}
