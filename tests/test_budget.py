@@ -87,8 +87,8 @@ def test_bad_rates_fail_closed(tmp_path, rate):
         make_pricing(tmp_path, input_per_million=rate)
 
 
-@pytest.mark.parametrize("cap", [0, -1, 10.01, float("nan"), float("inf")])
-def test_cannot_raise_budget_above_ten(tmp_path, cap):
+@pytest.mark.parametrize("cap", [0, -1, 5.01, 10, float("nan"), float("inf")])
+def test_cannot_raise_budget_above_five(tmp_path, cap):
     with pytest.raises(ValueError):
         Budget(tmp_path, cap_usd=cap)
 
@@ -150,3 +150,15 @@ def test_chat_missing_output_usage_retains_full_reservation(tmp_path):
     with pytest.raises(BudgetError, match="did not report usage"):
         budget.run("test", 100, 50, lambda: NS(usage=NS(prompt_tokens=4)))
     assert budget.spent_usd == pytest.approx(.0002)
+
+
+def test_default_cap_is_five_and_preserves_existing_ledger(tmp_path):
+    pricing = make_pricing(tmp_path)
+    budget = Budget(tmp_path, pricing=pricing)
+    budget.reserve("test", 4_000_000)
+    reopened = Budget(tmp_path, pricing=pricing)
+    assert reopened.spent_usd == 4
+    reopened.reserve("test", 1_000_000)
+    with pytest.raises(BudgetError, match=r"\$5 API cap"):
+        reopened.reserve("test", 1)
+    assert reopened.spent_usd == 5
