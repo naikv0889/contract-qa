@@ -14,7 +14,7 @@
   38 in one flattened SEC filing; measured a median chunk length of 555
   characters versus 854 in a paragraph-only ablation
 - Used exact NumPy cosine search over 1,216 clause-level chunks with persistent
-  embedding caching and a conservative $10 API spending ledger
+  embedding caching and a conservative $5 API spending ledger
 
 ## Add only after live evaluation
 

@@ -1,4 +1,4 @@
-"""Explicit pricing and a durable, process-safe $10 API spending ledger."""
+"""Explicit pricing and a durable, process-safe $5 API spending ledger."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Callable
 from uuid import uuid4
 
-CAP_USD = 10
+CAP_USD = 5
 NANODOLLARS = Decimal(1_000_000_000)
 
 
@@ -109,7 +109,7 @@ class Budget:
     def __init__(self, data_dir: str | Path = "data", *, pricing: Pricing | None = None,
                  cap_usd: float = CAP_USD):
         if not math.isfinite(cap_usd) or not 0 < cap_usd <= CAP_USD:
-            raise ValueError("The project budget must be positive and at most $10")
+            raise ValueError("The project budget must be positive and at most $5")
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.path = Path(os.environ.get("CONTRACT_QA_BUDGET_PATH", self.data_dir / "budget.sqlite3"))
@@ -222,7 +222,7 @@ if __name__ == "__main__":
         elif args.check_models:
             print(json.dumps(validate_selection(Pricing(Path(args.data_dir) / "pricing.json")), indent=2))
         else:
-            print(f"Spent or conservatively reserved: ${Budget(args.data_dir).spent_usd:.6f} / $10")
+            print(f"Spent or conservatively reserved: ${Budget(args.data_dir).spent_usd:.6f} / $5")
     except ConfigurationError as exc:
         parser.exit(2, f"{exc}\n")
     except Exception:

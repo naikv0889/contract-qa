@@ -7,7 +7,7 @@ CONSTRAINTS
   and the strongest current chat model. Record both in DECISIONS.md.
 - Exact NumPy cosine search. 1,216 chunks don't justify an index.
 - Never print, log, or commit API keys.
-- Total API spend cap: $10. Cache embeddings to disk and reuse them; never
+- Total API spend cap: $5. Cache embeddings to disk and reuse them; never
   re-embed unchanged chunks.
 - pytest tests for everything deterministic.
 

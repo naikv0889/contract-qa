@@ -103,7 +103,7 @@ Verify the embedding limit too; the number shown is a placeholder to recheck.
 
 ## Budget and cache
 
-The project cap is $10. Every paid request reserves a conservative maximum
+The project cap is $5. Every paid request reserves a conservative maximum
 charge first; reported usage reconciles that reservation. Unknown or failed
 requests keep the reservation, and automatic SDK retries are disabled.
 `data/budget.sqlite3` persists spend across runs. To share a single ledger across

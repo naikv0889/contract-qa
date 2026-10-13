@@ -50,7 +50,7 @@
 - Paid calls require explicit verified pricing configuration. Reserve a
   conservative upper bound before each request, disable automatic retries,
   reconcile observed usage, and retain uncertain charges after failed calls.
-  Never reset the ledger to bypass the $10 cap.
+  Never reset the ledger to bypass the $5 cap.
 
 ## Remaining verification
 
