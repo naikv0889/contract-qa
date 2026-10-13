@@ -1,0 +1,15 @@
+.env
+data/raw/
+__pycache__/
+.venv/
+.pytest_cache/
+data/embeddings.npy
+data/ids.json
+data/embedding_cache/
+data/api_budget.json
+data/api_budget.json.lock
+*.pyc
+data/budget.sqlite3*
+data/pricing.json
+
+PROJECT_BRIEF.txt
