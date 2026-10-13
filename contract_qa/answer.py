@@ -76,6 +76,17 @@ def verify_response(raw: str | dict, chunks: list[dict]) -> dict:
         return refusal
 
 
+def _configured_model(model: str | None, budget: Budget) -> tuple[str, dict]:
+    model = model or budget.pricing.selected("cheap")
+    rates = budget.pricing.model(model)
+    if rates.get("temperature_zero") is not True:
+        raise ConfigurationError(
+            f"Verify that {model!r} supports chat JSON mode and temperature=0, "
+            "then set temperature_zero=true in pricing.json."
+        )
+    return model, rates
+
+
 def answer_from_chunks(question: str, chunks: list[dict], model: str | None, *,
                        client=None, budget: Budget | None = None,
                        max_output_tokens: int = 1024) -> dict:
@@ -87,17 +98,11 @@ def answer_from_chunks(question: str, chunks: list[dict], model: str | None, *,
         raise ValueError("max_output_tokens must be a positive integer")
     if len(chunks) > 5:
         raise ValueError("Only the fixed top five retrieved chunks may be used")
+    budget = budget or Budget()
+    model, rates = _configured_model(model, budget)
     client = client or get_client()
     if hasattr(client, "with_options"):
         client = client.with_options(max_retries=0)
-    budget = budget or Budget()
-    model = model or budget.pricing.selected("cheap")
-    rates = budget.pricing.model(model)
-    if rates.get("temperature_zero") is not True:
-        raise ConfigurationError(
-            f"Verify that {model!r} supports chat JSON mode and temperature=0, "
-            "then set temperature_zero=true in pricing.json."
-        )
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": json.dumps({
@@ -128,7 +133,8 @@ def answer(question: str, contract_id: str | None = None, model: str | None = No
     if retriever is None:
         budget = budget or Budget()
         retriever = Retriever(client=client, budget=budget)
-    budget = budget or getattr(retriever, "budget", None)
+    budget = budget or getattr(retriever, "budget", None) or Budget()
+    model, _ = _configured_model(model, budget)
     chunks = retriever.search(question, k=5, contract_id=contract_id)
     return answer_from_chunks(question, chunks, model, client=client, budget=budget)
 

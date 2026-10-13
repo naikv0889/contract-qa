@@ -131,12 +131,15 @@ class Retriever:
             return np.empty((0, 0), dtype=np.float32)
         return np.stack([known[text] for text in texts])
 
+    def _read_chunks(self) -> list[dict]:
+        path = self.data_dir / "chunks.jsonl"
+        if not path.exists():
+            raise ConfigurationError("data/chunks.jsonl is missing. Run python -m contract_qa.ingest first.")
+        return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
     def build_index(self, chunks: list[dict] | None = None) -> np.ndarray:
         if chunks is None:
-            path = self.data_dir / "chunks.jsonl"
-            if not path.exists():
-                raise ConfigurationError("data/chunks.jsonl is missing. Run python -m contract_qa.ingest first.")
-            chunks = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+            chunks = self._read_chunks()
         if not chunks:
             raise ValueError("No chunks to embed")
         ids = [chunk["chunk_id"] for chunk in chunks]
@@ -157,7 +160,10 @@ class Retriever:
         if k == 0:
             return []
         if self.chunks is None:
-            self.build_index()
+            chunks = self._read_chunks()
+            if contract_id is not None and not any(c["contract_id"] == contract_id for c in chunks):
+                return []
+            self.build_index(chunks)
         if contract_id is not None and not any(c["contract_id"] == contract_id for c in self.chunks):
             return []
         query = self._embed([question])[0]

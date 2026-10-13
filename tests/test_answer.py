@@ -137,3 +137,13 @@ def test_more_than_five_chunks_rejected(tmp_path):
     with pytest.raises(ValueError, match="top five"):
         answer_from_chunks("Question?", CHUNKS * 6, "fake-chat",
                            client=FakeClient(), budget=setup(tmp_path))
+
+
+def test_bad_model_fails_before_retrieval(tmp_path):
+    budget = setup(tmp_path)
+    calls = []
+    retriever = NS(budget=budget, search=lambda *a, **kw: calls.append(True))
+    with pytest.raises(ConfigurationError, match="No verified pricing"):
+        answer("Which law?", model="typo", retriever=retriever, client=FakeClient())
+    assert calls == []
+    assert budget.spent_usd == 0

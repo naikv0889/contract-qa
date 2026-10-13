@@ -118,6 +118,18 @@ def write_result(path: Path, result: dict) -> None:
     temporary.replace(path)
 
 
+def check_benchmark(results_dir: Path, model: str, fingerprint: str) -> None:
+    """Do not pay for a comparison against an older or unverifiable benchmark."""
+    for path in results_dir.glob("*.json"):
+        report = json.loads(path.read_text(encoding="utf-8"))
+        if report.get("status") == "completed" and report.get("model") != model:
+            if report.get("benchmark_sha256") != fingerprint:
+                raise ValueError(
+                    "Saved results use a different or unknown benchmark. "
+                    "Use a separate --results-dir for this benchmark."
+                )
+
+
 def write_summary(results_dir: Path, selected_models: dict | None = None) -> str:
     """Include both model roles even before authenticated model selection is possible."""
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -126,6 +138,9 @@ def write_summary(results_dir: Path, selected_models: dict | None = None) -> str
         report = json.loads(path.read_text(encoding="utf-8"))
         if "model" in report and "metrics" in report:
             reports[report["model"]] = report
+    hashes = {report.get("benchmark_sha256") for report in reports.values()
+              if report["status"] == "completed"}
+    incompatible = len(hashes) > 1 or None in hashes
     selected_models = selected_models or {}
     models = list(dict.fromkeys(selected_models.values()))
     models.extend(model for model in reports if model not in models)
@@ -144,6 +159,9 @@ def write_summary(results_dir: Path, selected_models: dict | None = None) -> str
         if status != "completed":
             status = f"Incomplete ({metric['evaluated_items']}/{report['expected_items']})"
             values = ["N/A"] * 4
+        elif incompatible:
+            status = "Comparison blocked"
+            values = ["N/A"] * 4
         else:
             status = f"Completed ({metric['evaluated_items']})"
             values = [percent(metric[key]) for key in (
@@ -158,6 +176,7 @@ def write_summary(results_dir: Path, selected_models: dict | None = None) -> str
         "The benchmark is fixed at 25 contracts × 5 CUAD categories (125 items), with contract-scoped top-5 retrieval.", "",
         "| Model | Status | Recall@5 | Refusal accuracy | Grounded answer rate | False refusal rate | Cost (USD) |",
         "| --- | --- | --- | --- | --- | --- | --- |", *rows, "",
+        *(["Comparison blocked: completed reports have different or missing benchmark hashes. Keep separate benchmarks in separate results directories.", ""] if incompatible else []),
         "N/A means unmeasured or no applicable denominator, not zero performance. Incomplete runs retain per-item data but are not reported as complete benchmark scores.", "",
         "Recall, grounding and false-refusal denominators include only answerable items. Refusal accuracy includes only items with no annotations. Grounding requires every quote to verify and at least one cited chunk to contain a normalized annotated answer.", "",
         "Cost is the increase in the shared API budget ledger during that run, including any index creation, query embeddings and generation. Outstanding reservations count conservatively; this is not an invoice. Run models sequentially so unrelated API work does not enter that delta.", "",
@@ -183,13 +202,18 @@ def main() -> None:
         parser.error("A result already exists. Use --overwrite to explicitly rerun and spend again.")
     # Import API modules only for a real run; metric tests stay entirely offline.
     from contract_qa.answer import answer_from_chunks
-    from contract_qa.budget import Budget
+    from contract_qa.budget import Budget, ConfigurationError
     from contract_qa.retrieve import Retriever
 
     benchmark = (args.data_dir / "eval.jsonl").read_bytes()
     items = [json.loads(line) for line in benchmark.decode("utf-8").splitlines() if line.strip()]
     if len(items) != 125 or len({item["id"] for item in items}) != 125:
         parser.error("Expected 125 unique benchmark items; rebuild data/eval.jsonl.")
+    fingerprint = hashlib.sha256(benchmark).hexdigest()
+    try:
+        check_benchmark(args.results_dir, args.model, fingerprint)
+    except ValueError as error:
+        parser.error(str(error))
     budget = Budget(args.data_dir)
     before = budget.spent_usd
     result = {
@@ -197,7 +221,7 @@ def main() -> None:
         "status": "running",
         "started_at": datetime.now(timezone.utc).isoformat(),
         "expected_items": len(items),
-        "benchmark_sha256": hashlib.sha256(benchmark).hexdigest(),
+        "benchmark_sha256": fingerprint,
         "k": 5,
         "items": [],
         "metrics": summarize([], 0.0),
@@ -205,6 +229,9 @@ def main() -> None:
     write_result(output, result)
     error_type = None
     try:
+        rates = budget.pricing.model(args.model)
+        if rates.get("temperature_zero") is not True:
+            raise ConfigurationError("Verify model chat JSON mode and temperature=0 before evaluation.")
         retriever = Retriever(data_dir=args.data_dir, budget=budget)
         retriever.build_index()
 
