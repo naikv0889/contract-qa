@@ -139,3 +139,12 @@ def test_load_jsonl_and_fail_on_corrupt_cache(tmp_path):
     np.save(path, np.array([np.nan]))
     with pytest.raises(ValueError, match="cache"):
         retriever.build_index()
+
+
+def test_cold_cache_unknown_contract_never_embeds(tmp_path):
+    client, budget = setup(tmp_path)
+    (tmp_path / "chunks.jsonl").write_text("\n".join(map(json.dumps, chunks())))
+    retriever = Retriever(tmp_path, client=client, budget=budget)
+    assert retriever.search("Which law?", contract_id="typo") == []
+    assert client.calls == []
+    assert budget.spent_usd == 0

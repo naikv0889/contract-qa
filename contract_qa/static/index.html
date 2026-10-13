@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contract QA — Read with evidence</title>
+<link rel="stylesheet" href="/style.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="/" aria-label="Contract QA home"><span class="brand-mark" aria-hidden="true">§</span> Contract QA</a><div class="top-meta"><span class="privacy-dot"></span> Local workspace <span class="version">CUAD / v1</span></div></header>
+<main>
+<section class="intro"><p class="eyebrow">CONTRACT RESEARCH, WITH A PAPER TRAIL</p><h1>Find the clause.<br><span>See the evidence.</span></h1><p class="intro-copy">Ask a question across your agreements. Every answer comes with a checked quotation, or a clear refusal when the evidence falls short.</p></section>
+<div class="workspace">
+<section class="research" aria-labelledby="research-title">
+<div class="panel-top"><h2 id="research-title">Your research</h2><span id="collection-count" class="pill">Loading collection</span></div>
+<label for="contract">Search within</label><div class="select-wrap"><select id="contract"><option value="">All agreements</option></select></div>
+<div class="scope-note" id="scope-note">Search the complete collection, or narrow your question to one agreement.</div>
+<form id="question-form">
+<label for="question">What would you like to know?</label>
+<textarea id="question" name="question" rows="4" maxlength="3000" required placeholder="Which jurisdiction’s law governs this agreement?"></textarea>
+<div class="composer-footer"><span class="hint">⌘ / Ctrl + Enter to ask</span><span id="character-count" class="hint">0 / 3,000</span></div>
+<div id="model-field" hidden><label for="model">Model</label><select id="model"><option value="">Default model</option></select></div>
+<button id="ask-button" class="primary-button" type="submit"><span id="button-label">Find an answer</span><span id="button-icon" aria-hidden="true">↗</span></button>
+</form>
+<div id="service-notice" class="notice" role="status" hidden></div>
+<div class="starters"><h3>A place to start</h3><button type="button" data-question="Which jurisdiction's law governs this agreement?">Governing law <span aria-hidden="true">↗</span></button><button type="button" data-question="Can a party terminate this agreement without cause, and if so, how?">Termination rights <span aria-hidden="true">↗</span></button><button type="button" data-question="Does this agreement cap either party's liability?">Limits on liability <span aria-hidden="true">↗</span></button></div>
+<div class="method-note"><span aria-hidden="true">✓</span><p><strong>Evidence checked in code.</strong><br>Each quotation must match a retrieved clause. Verification checks the text, not its legal interpretation. Live answers send your question and retrieved clauses to OpenAI.</p></div>
+</section>
+<section class="findings" aria-labelledby="findings-title" aria-busy="false">
+<div class="panel-top"><h2 id="findings-title">Answer & evidence</h2><span id="result-tag" class="pill neutral">Ready to explore</span></div>
+<div id="result-region" aria-live="polite" aria-atomic="false">
+<div class="empty-state"><div class="document-icon" aria-hidden="true"><span></span><span></span><span></span></div><h3>A clear answer starts<br>with the right source.</h3><p>Choose an agreement and ask a question. Your answer and the exact clauses behind it will appear here.</p><div class="steps"><span><b>01</b> Retrieve</span><span><b>02</b> Answer</span><span><b>03</b> Verify</span></div></div>
+</div>
+</section>
+</div>
+<footer><span>Built for careful reading.</span><p>Research prototype · 25 CUAD agreements · Not legal advice</p><a href="https://github.com/The-Atticus-Project/cuad" target="_blank" rel="noopener noreferrer">About the dataset ↗</a></footer>
+</main>
+</body></html>

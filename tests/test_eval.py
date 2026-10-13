@@ -5,8 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from scripts.build_eval import QUESTIONS, build_items
+from scripts.build_eval import QUESTIONS, build_items, load_source
 from scripts.run_eval import (
+    check_benchmark,
     citations_verified,
     contains_annotation,
     evaluate_items,
@@ -31,6 +32,35 @@ def fixture_source():
     source = {"data": [{"title": "original-title", "paragraphs": [{"context": "New York", "qas": qas}]}]}
     manifest = [{"contract_id": "cuad-001", "cuad_title": "original-title"}]
     return source, manifest
+
+
+def test_default_source_uses_cached_zip_without_extracted_json(tmp_path, monkeypatch):
+    import zipfile
+
+    from scripts import build_eval
+
+    source, _ = fixture_source()
+    raw_dir = tmp_path / "data/raw"
+    raw_dir.mkdir(parents=True)
+    archive_path = raw_dir / "data.zip"
+    with zipfile.ZipFile(archive_path, "w") as archive:
+        archive.writestr("CUADv1.json", json.dumps(source))
+    monkeypatch.setattr(build_eval, "ROOT", tmp_path)
+    assert not (raw_dir / "CUADv1.json").exists()
+    assert load_source() == source
+    assert load_source(archive_path) == source
+    assert not (raw_dir / "CUADv1.json").exists()  # Reading never extracts files.
+    (raw_dir / "CUADv1.json").write_text('{"data": []}')
+    assert load_source() == {"data": []}  # Existing JSON remains the first choice.
+
+
+def test_explicit_source_json_and_missing_source(tmp_path):
+    source, _ = fixture_source()
+    path = tmp_path / "annotations.json"
+    path.write_text(json.dumps(source))
+    assert load_source(path) == source
+    with pytest.raises(FileNotFoundError):
+        load_source(tmp_path / "absent.json")
 
 
 def item(answerable=True):
@@ -240,6 +270,7 @@ def test_result_checkpoint_and_summary_are_honest(tmp_path):
     report = {
         "model": "fixture-model",
         "status": "completed",
+        "benchmark_sha256": "a" * 64,
         "expected_items": 1,
         "metrics": summarize([score_item(item(), [chunk()], response())], 0.001),
     }
@@ -300,6 +331,7 @@ def test_cli_checkpoints_shared_cost_and_never_fabricates_completion(tmp_path, m
         def __init__(self, directory):
             assert directory == data_dir
             self.spent_usd = 2.0  # Historical spend must not enter this run's cost.
+            self.pricing = SimpleNamespace(model=lambda model: {"temperature_zero": True})
 
     class Retriever:
         def __init__(self, data_dir, budget):
@@ -321,7 +353,7 @@ def test_cli_checkpoints_shared_cost_and_never_fabricates_completion(tmp_path, m
         calls["answers"] += 1
         return response()
 
-    monkeypatch.setitem(sys.modules, "contract_qa.budget", SimpleNamespace(Budget=Budget))
+    monkeypatch.setitem(sys.modules, "contract_qa.budget", SimpleNamespace(Budget=Budget, ConfigurationError=ValueError))
     monkeypatch.setitem(sys.modules, "contract_qa.retrieve", SimpleNamespace(Retriever=Retriever))
     monkeypatch.setitem(sys.modules, "contract_qa.answer", SimpleNamespace(answer_from_chunks=generate))
     monkeypatch.setattr(sys, "argv", ["run_eval.py", "--model", "fixture-model", "--data-dir", str(data_dir), "--results-dir", str(results_dir)])
@@ -362,3 +394,114 @@ def test_cli_prevents_accidental_paid_rerun(tmp_path, monkeypatch, capsys):
     assert stopped.value.code == 2
     assert "--overwrite" in capsys.readouterr().err
     assert json.loads(existing.read_text()) == {"saved": True}
+
+
+@pytest.mark.parametrize("other_hash", ["b" * 64, None])
+def test_mismatched_or_missing_benchmark_blocks_comparison(tmp_path, other_hash):
+    report = {
+        "model": "first-model", "status": "completed", "expected_items": 125,
+        "benchmark_sha256": "a" * 64,
+        "metrics": summarize([score_item(item(), [chunk()], response())], 0.001),
+    }
+    write_result(tmp_path / "first-model.json", report)
+    check_benchmark(tmp_path, "new-model", "a" * 64)
+    with pytest.raises(ValueError, match="different or unknown benchmark"):
+        check_benchmark(tmp_path, "new-model", "b" * 64)
+    # An explicitly requested overwrite of this model is allowed; other models
+    # still need matching fingerprints before any API work begins.
+    check_benchmark(tmp_path, "first-model", "b" * 64)
+    report = {**report, "model": "second-model", "benchmark_sha256": other_hash}
+    write_result(tmp_path / "second-model.json", report)
+    text = write_summary(tmp_path, {"cheap": "first-model", "strong": "second-model"})
+    assert text.count("| Comparison blocked |") == 2
+    assert "100.0%" not in text
+    assert "different or missing benchmark hashes" in text
+    assert text.count("$0.001000") == 2  # Real costs remain visible.
+    with pytest.raises(ValueError):
+        check_benchmark(tmp_path, "new-model", "a" * 64)
+
+
+def test_matching_benchmarks_allow_comparison_and_ignore_incomplete_runs(tmp_path):
+    report = {
+        "model": "first-model", "status": "completed", "expected_items": 125,
+        "benchmark_sha256": "a" * 64,
+        "metrics": summarize([score_item(item(), [chunk()], response())], 0.001),
+    }
+    write_result(tmp_path / "first-model.json", report)
+    write_result(tmp_path / "second-model.json", {**report, "model": "second-model"})
+    write_result(tmp_path / "unfinished.json", {
+        **report, "model": "unfinished", "status": "incomplete", "benchmark_sha256": "b" * 64
+    })
+    check_benchmark(tmp_path, "new-model", "a" * 64)
+    text = write_summary(tmp_path, {"cheap": "first-model", "strong": "second-model"})
+    assert "Comparison blocked" not in text
+    assert text.count("| Completed (1) | 100.0%") == 2
+    assert "Incomplete (1/125) | N/A" in text
+
+
+def test_cli_benchmark_mismatch_stops_before_budget_creation(tmp_path, monkeypatch, capsys):
+    import sys
+
+    from scripts import run_eval
+
+    data_dir, results_dir = tmp_path / "data", tmp_path / "results"
+    data_dir.mkdir()
+    rows = [{**item(), "id": f"fixture-{index}"} for index in range(125)]
+    (data_dir / "eval.jsonl").write_text("".join(json.dumps(row) + "\n" for row in rows))
+    write_result(results_dir / "previous.json", {
+        "model": "previous", "status": "completed", "benchmark_sha256": "a" * 64
+    })
+    ledger = tmp_path / "never-created.sqlite3"
+    monkeypatch.setenv("CONTRACT_QA_BUDGET_PATH", str(ledger))
+    monkeypatch.setattr(sys, "argv", [
+        "run_eval.py", "--model", "new-model", "--data-dir", str(data_dir),
+        "--results-dir", str(results_dir)
+    ])
+    with pytest.raises(SystemExit) as stopped:
+        run_eval.main()
+    assert stopped.value.code == 2
+    assert "different or unknown benchmark" in capsys.readouterr().err
+    assert not ledger.exists()
+    assert not (results_dir / "new-model.json").exists()
+
+
+@pytest.mark.parametrize("model_rates", [None, {"temperature_zero": False}])
+def test_cli_generation_configuration_is_checked_before_any_embedding(tmp_path, monkeypatch, model_rates):
+    import sys
+    from types import SimpleNamespace
+
+    from scripts import run_eval
+
+    data_dir, results_dir = tmp_path / "data", tmp_path / "results"
+    data_dir.mkdir()
+    rows = [{**item(), "id": f"fixture-{index}"} for index in range(125)]
+    (data_dir / "eval.jsonl").write_text("".join(json.dumps(row) + "\n" for row in rows))
+    models = {"text-embedding-3-small": {
+        "input_per_million": 1, "output_per_million": 0, "max_input_tokens": 8192
+    }}
+    if model_rates is not None:
+        models["unconfigured-model"] = {
+            "input_per_million": 1, "output_per_million": 2, "max_input_tokens": 8192,
+            **model_rates,
+        }
+    (data_dir / "pricing.json").write_text(json.dumps({
+        "verified_at": "2026-10-13", "source": "https://openai.com/api/pricing/", "models": models
+    }))
+    monkeypatch.setenv("CONTRACT_QA_BUDGET_PATH", str(tmp_path / "budget.sqlite3"))
+
+    def forbidden_retriever(*args, **kwargs):
+        pytest.fail("Misconfigured generation must fail before creating a retriever")
+
+    monkeypatch.setitem(sys.modules, "contract_qa.retrieve", SimpleNamespace(Retriever=forbidden_retriever))
+    monkeypatch.setattr(sys, "argv", [
+        "run_eval.py", "--model", "unconfigured-model", "--data-dir", str(data_dir),
+        "--results-dir", str(results_dir)
+    ])
+    with pytest.raises(SystemExit) as stopped:
+        run_eval.main()
+    assert stopped.value.code == 1
+    report = json.loads((results_dir / "unconfigured-model.json").read_text())
+    assert report["status"] == "incomplete"
+    assert report["error_type"] == "ConfigurationError"
+    assert report["metrics"]["cost_usd"] == 0
+    assert report["metrics"]["evaluated_items"] == 0

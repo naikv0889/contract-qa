@@ -3,6 +3,7 @@
 import argparse
 import json
 from pathlib import Path
+import zipfile
 
 
 QUESTIONS = {
@@ -15,6 +16,19 @@ QUESTIONS = {
     "Cap On Liability": "Does this agreement cap either party's liability?",
 }
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_source(source: Path | None = None) -> dict:
+    """Read local annotations; the unchanged downloader caches only data.zip."""
+    if source is None:
+        source = ROOT / "data/raw/CUADv1.json"
+        if not source.exists():
+            source = ROOT / "data/raw/data.zip"
+    if source.suffix.lower() == ".zip":
+        with zipfile.ZipFile(source) as archive:
+            with archive.open("CUADv1.json") as member:
+                return json.load(member)
+    return json.loads(source.read_text(encoding="utf-8"))
 
 
 def build_items(cuad: dict, manifest: list[dict]) -> list[dict]:
@@ -62,12 +76,12 @@ def build_items(cuad: dict, manifest: list[dict]) -> list[dict]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=ROOT / "data/raw/CUADv1.json")
+    parser.add_argument("--source", type=Path, help="Local CUAD JSON or ZIP; defaults to cached JSON, then data/raw/data.zip")
     parser.add_argument("--manifest", type=Path, default=ROOT / "data/contracts/manifest.json")
     parser.add_argument("--output", type=Path, default=ROOT / "data/eval.jsonl")
     args = parser.parse_args()
     items = build_items(
-        json.loads(args.source.read_text(encoding="utf-8")),
+        load_source(args.source),
         json.loads(args.manifest.read_text(encoding="utf-8")),
     )
     if len(items) != 125 or len({item["contract_id"] for item in items}) != 25:
