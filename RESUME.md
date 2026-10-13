@@ -18,11 +18,10 @@
 
 ## Add only after live evaluation
 
-The requested model-comparison bullet is not supported yet. Both models are
-identified as candidates (`gpt-6-luna` and `gpt-6-astra`), but quality metrics
-remain unmeasured: Astra cannot satisfy the required temperature 0, and its
-full-window reservation exceeds the $5 cap. The key now authenticates.
-Once two complete runs are available, use their actual model IDs,
-Recall@5, grounded answer rates, and refusal accuracy from
-`results/summary.md`. Do not replace N/A with zero or use a fabricated score.
-The historical 1,640-character baseline is unverified and must not be claimed.
+The requested model-comparison bullet is not supported yet. The user approved
+`gpt-6-luna` versus `gpt-6-sol` with temperature 0 and reasoning none. Both IDs
+are visible and exact input counting works, but the first Luna generation
+returned HTTP 401 AuthenticationError. All quality metrics remain unmeasured.
+Use actual metrics only after two completed runs; do not replace N/A with zero.
+The measured 854-to-555-character ablation is valid; the historical 1,640-character
+baseline remains unverified.

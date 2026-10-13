@@ -1,7 +1,10 @@
 {
   "verified_at": "2026-10-13",
   "authenticated_models_listing": "succeeded",
-  "key_visible_candidates": {"cheap_current": "gpt-6-luna", "strongest_current": "gpt-6-astra"},
+  "key_visible_candidates": {
+    "cheap_current": "gpt-6-luna",
+    "strongest_current": "gpt-6-astra"
+  },
   "selection_status": "blocked; no runnable pricing configuration created",
   "cap_usd": 5,
   "actual_spend_usd": 0,
@@ -20,5 +23,6 @@
     "https://developers.openai.com/api/docs/models/gpt-6-astra",
     "https://developers.openai.com/api/docs/guides/latest-model",
     "https://developers.openai.com/api/docs/models/gpt-5-nano"
-  ]
+  ],
+  "superseded_by": "DECISIONS.md approved compatible comparison and results/model_smoke.json"
 }

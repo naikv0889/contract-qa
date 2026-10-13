@@ -110,6 +110,12 @@ def answer_from_chunks(question: str, chunks: list[dict], model: str | None, *,
             "clauses": [{"chunk_id": c["chunk_id"], "text": c["text"]} for c in chunks],
         }, ensure_ascii=False)},
     ]
+    if rates.get("api") == "responses":
+        from .counted import generate
+        response = generate(messages, model, rates, client, budget, max_output_tokens)
+        if response.status != "completed":
+            return {"refusal": INVALID_RESPONSE}
+        return verify_response(response.output_text, chunks)
     # Reserving a full model input window avoids guessed tokenization overhead.
     response = budget.run(
         model, rates["max_input_tokens"], max_output_tokens,

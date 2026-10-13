@@ -171,3 +171,34 @@ demo. `git diff --exit-code -- data` proved byte-identical regeneration;
 compilation passed and the clone stayed clean. Its budget command used the
 same absolute ledger and reported **$0.000000 / $5**. No embedding cache was
 created or copied and no paid API request was made.
+
+## Approved comparison and generation-access blocker (2026-10-13)
+
+This checkpoint supersedes the earlier model-selection pause. The user approved
+Luna plus stronger compatible Sol, with the $5 total cap unchanged. Both model
+IDs are visible to the key and exact Responses input counting succeeded.
+A provider count of the frozen request replaces the full-window bound only
+for the Responses path; generation uses identical input, JSON mode,
+temperature 0, reasoning none and a maximum 1,024 output tokens.
+
+- Full deterministic suite: **224 passed, 1 xfailed in 10.26s**.
+- New tests cover invalid/oversized counts, client input mutation, count timeout,
+  budget rejection before generation, incomplete outputs and cache-write costs.
+- First live generation: **HTTP 401 AuthenticationError**, `gpt-6-luna`.
+  No raw credential-bearing error was logged. No retry or stronger-model call
+  followed, and no credential/security setting was changed.
+- Persistent ledger: one unsettled reservation, **$0.000085125**; settled
+  usage-confirmed spend **$0**. Actual rejected-request billing is unknown.
+  The ledger was extended with cache usage details, never deleted or reset.
+- No embeddings, benchmark items, or live UI answers were generated. The old
+  localhost process was stopped after the authentication failure.
+- Browser evidence from the earlier checkpoint remains valid for rendering,
+  but live answer/refusal integration is still blocked.
+- [Capability smoke record](results/model_smoke.json) and
+  [verified rates](results/pricing-2026-10-13.json) preserve the latest evidence.
+
+The conditional ceiling for two 125-question evaluations at the enforced
+10,000 input / 1,024 output token limits is $4.647176 including initial embedding
+bounds and worst-case cache-write input rates. Failed requests and smoke/UI
+work consume the remaining allowance in the same ledger. This is not a measured
+benchmark cost or permission to exceed $5.
