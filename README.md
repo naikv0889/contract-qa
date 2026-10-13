@@ -20,20 +20,22 @@ counts and dataset properties are measured from their actual output.
 ## Repository and CI
 
 Public repository: [naikv0889/contract-qa](https://github.com/naikv0889/contract-qa).
-The first four implementation phases passed GitHub Actions CI and were squash
+All five implementation phases passed GitHub Actions CI and were squash
 merged: [ingestion #1](https://github.com/naikv0889/contract-qa/pull/1),
 [retrieval #2](https://github.com/naikv0889/contract-qa/pull/2),
 [verified answers #3](https://github.com/naikv0889/contract-qa/pull/3), and
-[evaluation #4](https://github.com/naikv0889/contract-qa/pull/4).
-Phase 5, including this UI and documentation, is pending its publication/CI
-check at this checkpoint. Follow the [pull requests](https://github.com/naikv0889/contract-qa/pulls)
-for its current status. Passing CI does not establish live model quality.
+[evaluation #4](https://github.com/naikv0889/contract-qa/pull/4), and
+[UI and documentation #5](https://github.com/naikv0889/contract-qa/pull/5).
+The final phase passed **204 tests with 1 documented expected failure** on
+Python 3.11. Passing CI does not establish live model quality.
 
 ## Quick start: no API key required
 
-Use Python 3.11 or newer. From a checkout of this repository:
+Use Python 3.11 or newer:
 
 ```sh
+git clone https://github.com/naikv0889/contract-qa.git
+cd contract-qa
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
