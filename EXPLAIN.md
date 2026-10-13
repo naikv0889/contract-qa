@@ -92,7 +92,7 @@ a refused answer.
     observed usage reconciles them, caching avoids repeat embeddings, and
     automatic SDK retries are disabled.
 14. **What do the results show?** Consult the actual results table. The key now
-    authenticates, but the strongest model conflicts with temperature 0.
+    supports model listing/counting, but generation returned HTTP 401.
     Model quality is unmeasured; passing deterministic tests is
     evidence about code behavior, not evidence of model accuracy.
 15. **What would you improve next?** Evaluate a larger held-out set, inspect
@@ -107,3 +107,12 @@ cannot accept temperature 0. Its conservative full-window reservation also
 exceeds $5. Browser rendering now passes on desktop and mobile with explicitly
 labeled fixtures; live answer quality and end-to-end paid behavior are still
 unmeasured. See DECISIONS.md and VALIDATION.md for evidence and next options.
+
+
+The approved compatible comparison now uses Luna and Sol, with the identical
+prompt on Responses, temperature 0 and reasoning none. `counted.py` freezes
+all input fields, obtains the provider's exact count including framing, rejects
+requests above the priced 10,000-token limit, then reserves input plus the full
+1,024-token output allowance. It never transfers a Responses count to Chat
+Completions. The first live generation returned HTTP 401; its reservation is
+retained, and no benchmark metrics or model-comparison resume claims exist.

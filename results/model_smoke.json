@@ -1,0 +1,18 @@
+{
+  "kind": "paid synthetic capability smoke; not benchmark",
+  "records": [
+    {
+      "model_id": "gpt-6-luna",
+      "exception_type": "AuthenticationError",
+      "http_status": 401,
+      "ledger_delta_usd": 8.5125e-05
+    }
+  ],
+  "status": "blocked",
+  "blocker": "HTTP 401 AuthenticationError from Responses generation; models listing and input counting succeeded",
+  "usage_confirmed_spend_usd": 0,
+  "unsettled_reservation_usd": 8.5125e-05,
+  "actual_billed_cost": "unknown for rejected request; no provider usage returned",
+  "paid_generation_attempts": 1,
+  "embeddings_purchased": false
+}

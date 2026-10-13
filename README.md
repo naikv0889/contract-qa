@@ -10,8 +10,10 @@ engineering portfolio project, not legal advice or a production legal tool.
 
 The deterministic implementation, 25-contract CUAD subset, and 125-question
 evaluation set are included. Live model quality is **not yet measured**:
-the key now authenticates, but the strongest current model conflicts with the
-required temperature 0. No API spending occurred.
+model listing and exact input counting authenticate, but the first approved
+`gpt-6-luna` generation failed with HTTP 401 AuthenticationError. Paid work is
+stopped. The ledger retains $0.000085125 for that rejected request; no usage
+was returned, so its actual billing is unknown. See the latest decision.
 See [VALIDATION.md](VALIDATION.md) for measured local checks and
 [DECISIONS.md](DECISIONS.md) for deviations from the original brief.
 
@@ -60,9 +62,9 @@ every push and pull request.
 2. List the models available to that key:
    `python -m contract_qa.budget --list-models`.
 3. Consult [official pricing](https://openai.com/api/pricing/) and each
-   candidate's official model documentation. Choose the cheapest current
-   chat model and the strongest current chat model visible to the key that
-   support Chat Completions JSON output and temperature 0. Record choices,
+   candidate's official model documentation. Choose the approved low-cost
+   model and stronger compatible model visible to the key that
+   support JSON output and temperature 0. Record choices,
    rates (the highest applicable standard rate across context tiers), input limits,
    documentation URLs, and verification date in
    `DECISIONS.md`. Run `python -m contract_qa.budget --check-models` to
@@ -104,7 +106,21 @@ Verify the embedding limit too; the number shown is a placeholder to recheck.
 
 ## Budget and cache
 
-The project cap is $5. Every paid request reserves a conservative maximum
+The project cap is $5. For the approved GPT-6 pair, use exact Responses input
+counting before generation, with an enforced 10,000-token input limit and
+1,024-token output maximum. Reject counts that exceed the limit; do not truncate
+clauses or guess message-framing overhead. Cache-write rates are included in
+reservations and cache details are reconciled from provider usage.
+
+The verified dated configuration is [results/pricing-2026-10-13.json](results/pricing-2026-10-13.json).
+After generation access is restored and prices are rechecked, copy it to ignored
+`data/pricing.json`. It selects `gpt-6-luna` and `gpt-6-sol`, Responses JSON mode,
+temperature 0 and explicit reasoning none. `max_input_tokens` retains the true
+model context limit; `request_input_limit` separately enforces the smaller
+priced request size. The generic configuration above uses the legacy Chat
+Completions path, which retains full-window reservations.
+
+ Every paid request reserves a conservative maximum
 charge first; reported usage reconciles that reservation. Unknown or failed
 requests keep the reservation, and automatic SDK retries are disabled.
 `data/budget.sqlite3` persists spend across runs. To share a single ledger across
@@ -175,12 +191,18 @@ than reported as a completed 125-question evaluation.
 
 ### Actual CLI status and offline demonstration
 
-On 2026-10-13 the actual answer CLI exited with code 2 and this configuration error
-(pricing was deliberately left unconfigured while the model conflict is unresolved):
+The generation capability smoke failed with HTTP 401 AuthenticationError.
+Model listing and exact input counting succeeded, so those checks alone do not
+establish permission to generate. Embeddings and evaluation have not run.
+The actual budget CLI reports:
 
 ```text
-Verified pricing is required at data/pricing.json; see README.md for its schema.
+Spent or conservatively reserved: $0.000085 / $5
 ```
+
+This display rounds the retained reservation; its exact value is $0.000085125.
+No usage-confirmed charge has been settled. No real generated-answer example
+is available yet.
 
 A separate offline demonstration uses a real CUAD annotation directly to test
 citation validation. It does **not** simulate retrieval or present an answer
@@ -213,8 +235,8 @@ The benchmark is fixed at 25 contracts × 5 CUAD categories (125 items), with co
 
 | Model | Status | Recall@5 | Refusal accuracy | Grounded answer rate | False refusal rate | Cost (USD) |
 | --- | --- | --- | --- | --- | --- | --- |
-| gpt-6-luna (current low-cost candidate) | Paused: comparison conflict | N/A | N/A | N/A | N/A | N/A |
-| gpt-6-astra (strongest candidate) | Blocked: temperature and budget | N/A | N/A | N/A | N/A | N/A |
+| gpt-6-luna | Not run | N/A | N/A | N/A | N/A | N/A |
+| gpt-6-sol | Not run | N/A | N/A | N/A | N/A | N/A |
 
 N/A means unmeasured or no applicable denominator, not zero performance. Incomplete runs retain per-item data but are not reported as complete benchmark scores.
 
@@ -222,7 +244,14 @@ Recall, grounding and false-refusal denominators include only answerable items. 
 
 Cost is the increase in the shared API budget ledger during that run, including any index creation, query embeddings and generation. Outstanding reservations count conservatively; this is not an invoice. Run models sequentially so unrelated API work does not enter that delta.
 
-Prompts and k are not tuned against these results. Authenticated model listing succeeded on 2026-10-13. Neither evaluation was started. Actual total project spend and outstanding reservations are both **$0**, against a **$5** cap. See [model decision](DECISIONS.md#published-environment-model-decision-2026-10-13).
+Prompts and k are not tuned against these results. Model selection and live measurement require an API key and verified pricing configuration.
+
+Latest checkpoint: the approved pair is `gpt-6-luna` / `gpt-6-sol`. The first
+Luna generation smoke returned HTTP 401 AuthenticationError, despite successful
+model listing and exact input counting. No evaluation was started. Settled
+usage-confirmed spend is **$0**; **$0.000085125** remains reserved for the rejected
+request because no usage was returned. Actual billing for that request is
+unknown. No embeddings were purchased. See [smoke record](results/model_smoke.json).
 
 ## Browser workspace
 
